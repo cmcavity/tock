@@ -1,6 +1,5 @@
-#![feature(
-    asm, concat_idents, const_fn, const_cell_new, try_from, core_intrinsics, iterator_step_by
-)]
+#![feature(asm, concat_idents, const_fn, const_cell_new, try_from)]
+#![feature(core_intrinsics, iterator_step_by, used)]
 #![no_std]
 #![crate_name = "nrf52"]
 #![crate_type = "rlib"]

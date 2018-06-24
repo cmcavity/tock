@@ -8,7 +8,7 @@
 
 #![feature(asm, core_intrinsics, unique, nonzero, ptr_internals)]
 #![feature(const_fn, const_cell_new, const_unsafe_cell_new, lang_items)]
-#![feature(nonnull_cast)]
+#![feature(nonnull_cast, used)]
 #![feature(use_extern_macros)]
 #![no_std]
 
