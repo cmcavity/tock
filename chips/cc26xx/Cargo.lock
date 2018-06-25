@@ -1,5 +1,5 @@
 [[package]]
-name = "capsules"
+name = "cc26xx"
 version = "0.1.0"
 dependencies = [
  "kernel 0.1.0",

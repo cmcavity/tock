@@ -6,9 +6,7 @@
 //!
 //! Most `unsafe` code is in this kernel crate.
 
-#![feature(asm, core_intrinsics, unique, nonzero, ptr_internals)]
-#![feature(const_fn, const_cell_new, const_unsafe_cell_new, lang_items)]
-#![feature(nonnull_cast)]
+#![feature(asm, core_intrinsics, unique, ptr_internals, const_fn)]
 #![feature(use_extern_macros)]
 #![no_std]
 

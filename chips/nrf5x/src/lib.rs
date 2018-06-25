@@ -1,4 +1,4 @@
-#![feature(asm, concat_idents, const_fn, const_cell_new, try_from)]
+#![feature(const_fn)]
 #![no_std]
 
 #[allow(unused_imports)]
