@@ -10,7 +10,7 @@
 
 extern crate capsules;
 #[allow(unused_imports)]
-#[macro_use(debug, debug_gpio, static_init, create_capability)]
+#[macro_use(create_capability, debug, debug_gpio, static_init)]
 extern crate kernel;
 extern crate cortexm4;
 extern crate sam4l;
@@ -189,9 +189,10 @@ pub unsafe fn reset_handler() {
 
     // Create capabilities that the board needs to call certain protected kernel
     // functions.
-    let process_mgmt_cap = create_capability!(capabilities::ProcessManagementCapability);
-    let main_cap = create_capability!(capabilities::MainLoopCapability);
-    let grant_cap = create_capability!(capabilities::MemoryAllocationCapability);
+    let process_management_capability =
+        create_capability!(capabilities::ProcessManagementCapability);
+    let main_loop_capability = create_capability!(capabilities::MainLoopCapability);
+    let memory_allocation_capability = create_capability!(capabilities::MemoryAllocationCapability);
 
     // Configure kernel debug gpios as early as possible
     kernel::debug::assign_gpios(
@@ -209,7 +210,7 @@ pub unsafe fn reset_handler() {
             115200,
             &mut capsules::console::WRITE_BUF,
             &mut capsules::console::READ_BUF,
-            kernel::Grant::create(&grant_cap)
+            kernel::Grant::create(&memory_allocation_capability)
         )
     );
     hil::uart::UART::set_client(&sam4l::usart::USART0, console);
@@ -259,13 +260,19 @@ pub unsafe fn reset_handler() {
 
     let temp = static_init!(
         capsules::temperature::TemperatureSensor<'static>,
-        capsules::temperature::TemperatureSensor::new(si7021, kernel::Grant::create(&grant_cap))
+        capsules::temperature::TemperatureSensor::new(
+            si7021,
+            kernel::Grant::create(&memory_allocation_capability)
+        )
     );
     kernel::hil::sensors::TemperatureDriver::set_client(si7021, temp);
 
     let humidity = static_init!(
         capsules::humidity::HumiditySensor<'static>,
-        capsules::humidity::HumiditySensor::new(si7021, kernel::Grant::create(&grant_cap))
+        capsules::humidity::HumiditySensor::new(
+            si7021,
+            kernel::Grant::create(&memory_allocation_capability)
+        )
     );
     kernel::hil::sensors::HumidityDriver::set_client(si7021, humidity);
 
@@ -288,7 +295,10 @@ pub unsafe fn reset_handler() {
 
     let ambient_light = static_init!(
         capsules::ambient_light::AmbientLight<'static>,
-        capsules::ambient_light::AmbientLight::new(isl29035, kernel::Grant::create(&grant_cap))
+        capsules::ambient_light::AmbientLight::new(
+            isl29035,
+            kernel::Grant::create(&memory_allocation_capability)
+        )
     );
     hil::sensors::AmbientLight::set_client(isl29035, ambient_light);
 
@@ -299,7 +309,10 @@ pub unsafe fn reset_handler() {
     );
     let alarm = static_init!(
         capsules::alarm::AlarmDriver<'static, VirtualMuxAlarm<'static, sam4l::ast::Ast>>,
-        capsules::alarm::AlarmDriver::new(virtual_alarm1, kernel::Grant::create(&grant_cap))
+        capsules::alarm::AlarmDriver::new(
+            virtual_alarm1,
+            kernel::Grant::create(&memory_allocation_capability)
+        )
     );
     virtual_alarm1.set_client(alarm);
 
@@ -318,7 +331,10 @@ pub unsafe fn reset_handler() {
 
     let ninedof = static_init!(
         capsules::ninedof::NineDof<'static>,
-        capsules::ninedof::NineDof::new(fxos8700, kernel::Grant::create(&grant_cap))
+        capsules::ninedof::NineDof::new(
+            fxos8700,
+            kernel::Grant::create(&memory_allocation_capability)
+        )
     );
     hil::sensors::NineDof::set_client(fxos8700, ninedof);
 
@@ -381,7 +397,10 @@ pub unsafe fn reset_handler() {
     );
     let button = static_init!(
         capsules::button::Button<'static, sam4l::gpio::GPIOPin>,
-        capsules::button::Button::new(button_pins, kernel::Grant::create(&grant_cap))
+        capsules::button::Button::new(
+            button_pins,
+            kernel::Grant::create(&memory_allocation_capability)
+        )
     );
     for &(btn, _) in button_pins.iter() {
         btn.set_client(button);
@@ -414,7 +433,10 @@ pub unsafe fn reset_handler() {
     // Setup RNG
     let rng = static_init!(
         capsules::rng::SimpleRng<'static, sam4l::trng::Trng>,
-        capsules::rng::SimpleRng::new(&sam4l::trng::TRNG, kernel::Grant::create(&grant_cap))
+        capsules::rng::SimpleRng::new(
+            &sam4l::trng::TRNG,
+            kernel::Grant::create(&memory_allocation_capability)
+        )
     );
     sam4l::trng::TRNG.set_client(rng);
 
@@ -439,7 +461,10 @@ pub unsafe fn reset_handler() {
     // CRC
     let crc = static_init!(
         capsules::crc::Crc<'static, sam4l::crccu::Crccu<'static>>,
-        capsules::crc::Crc::new(&mut sam4l::crccu::CRCCU, kernel::Grant::create(&grant_cap))
+        capsules::crc::Crc::new(
+            &mut sam4l::crccu::CRCCU,
+            kernel::Grant::create(&memory_allocation_capability)
+        )
     );
     sam4l::crccu::CRCCU.set_client(crc);
 
@@ -463,7 +488,7 @@ pub unsafe fn reset_handler() {
         led: led,
         button: button,
         rng: rng,
-        ipc: kernel::ipc::IPC::new(&grant_cap),
+        ipc: kernel::ipc::IPC::new(&memory_allocation_capability),
         crc: crc,
         dac: dac,
     };
@@ -502,7 +527,13 @@ pub unsafe fn reset_handler() {
         &mut APP_MEMORY,
         &mut PROCESSES,
         FAULT_RESPONSE,
-        &process_mgmt_cap,
+        &process_management_capability,
     );
-    kernel::kernel_loop(&hail, &mut chip, &mut PROCESSES, Some(&hail.ipc), &main_cap);
+    kernel::kernel_loop(
+        &hail,
+        &mut chip,
+        &mut PROCESSES,
+        Some(&hail.ipc),
+        &main_loop_capability,
+    );
 }
