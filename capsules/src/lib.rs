@@ -1,4 +1,5 @@
 #![feature(const_fn, const_cell_new)]
+#![feature(infer_outlives_requirements, in_band_lifetimes)]
 #![forbid(unsafe_code)]
 #![no_std]
 
@@ -15,6 +16,7 @@ pub mod adc;
 pub mod aes_ccm;
 pub mod alarm;
 pub mod ambient_light;
+pub mod analog_sensor;
 pub mod app_flash_driver;
 pub mod ble_advertising_driver;
 pub mod button;
